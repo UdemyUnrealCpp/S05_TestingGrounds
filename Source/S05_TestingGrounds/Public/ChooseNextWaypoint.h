@@ -17,7 +17,20 @@ class S05_TESTINGGROUNDS_API UChooseNextWaypoint : public UBTTaskNode
 	EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;	
 
 
+
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector m_IndexKey;
+
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	FBlackboardKeySelector m_WaypointKey;
+
+private:
+
+	TArray<AActor*> GetPatrolPoints(UBehaviorTreeComponent& OwnerComp);
+
+	void SetNextWaypoint(UBlackboardComponent *BlackboardComp, int IndexCurrent, TArray<AActor*> &PatrolPoints);
+
+	void CycleIndex(UBlackboardComponent *BlackboardComp, int IndexCurrent, TArray<AActor*> &PatrolPoints);
 };
