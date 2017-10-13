@@ -28,9 +28,9 @@ protected:
 
 private:
 
-	TArray<AActor*> GetPatrolPoints(UBehaviorTreeComponent& OwnerComp);
+	bool GetPatrolPoints(UBehaviorTreeComponent& OwnerComp, TArray<AActor*> *PatrolPoints);
 
-	void SetNextWaypoint(UBlackboardComponent *BlackboardComp, int IndexCurrent, TArray<AActor*> &PatrolPoints);
+	void SetNextWaypoint(UBlackboardComponent *BlackboardComp, const int IndexCurrent, const TArray<AActor*> &PatrolPoints);
 
-	void CycleIndex(UBlackboardComponent *BlackboardComp, int IndexCurrent, TArray<AActor*> &PatrolPoints);
+	void CycleIndex(UBlackboardComponent *BlackboardComp, const int IndexCurrent, const TArray<AActor*> &PatrolPoints);
 };

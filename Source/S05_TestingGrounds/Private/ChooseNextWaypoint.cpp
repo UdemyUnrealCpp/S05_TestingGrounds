@@ -2,8 +2,8 @@
 
 #include "ChooseNextWaypoint.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "PatrollingGuard.h" //TODo remove coupling
 #include "AIController.h"
+#include "PatrolRoute.h"
 
 
 
@@ -16,29 +16,47 @@ EBTNodeResult::Type UChooseNextWaypoint::ExecuteTask(UBehaviorTreeComponent& Own
 
 	//TODO protect against empty patrol routes
 
-	TArray<AActor*> PatrolPoints = this->GetPatrolPoints(OwnerComp);
-	this->SetNextWaypoint(BlackboardComp, Index, PatrolPoints);
-	this->CycleIndex(BlackboardComp, Index, PatrolPoints);
+	TArray<AActor*> PatrolPoints;
+	if (this->GetPatrolPoints(OwnerComp, &PatrolPoints)) //protect against no patrol route component & against empty patrol routes
+	{	
+		this->SetNextWaypoint(BlackboardComp, Index, PatrolPoints);
+		this->CycleIndex(BlackboardComp, Index, PatrolPoints);
 
-	UE_LOG(LogTemp, Warning, TEXT("Patrol point size : %i"), PatrolPoints.Num());
+		UE_LOG(LogTemp, Warning, TEXT("Patrol point size : %i"), PatrolPoints.Num());
+		return EBTNodeResult::Succeeded;
+	}
 
-	return EBTNodeResult::Succeeded;
+	return EBTNodeResult::Failed;
 }
 
-TArray<AActor*> UChooseNextWaypoint::GetPatrolPoints(UBehaviorTreeComponent& OwnerComp)
+bool UChooseNextWaypoint::GetPatrolPoints(UBehaviorTreeComponent& OwnerComp, TArray<AActor*> *PatrolPoints)
 {
 	AAIController *AIController = OwnerComp.GetAIOwner();
 	APawn *AIPawn = AIController->GetPawn();
+	UPatrolRoute *PatrolRouteComp = Cast<UPatrolRoute>(AIPawn->FindComponentByClass<UPatrolRoute>());	
+	
+	//protect against no patrol route component	
+	if (!ensure(PatrolRouteComp)) { return false; }
 
-	return Cast<APatrollingGuard>(AIPawn)->m_PatrolPoints;
+	///UE_LOG(LogTemp, Warning, TEXT("1_ : %i"), (*PatrolPoints).Num());
+	*PatrolPoints = PatrolRouteComp->GetPatrolPoints();
+	///UE_LOG(LogTemp, Warning, TEXT("2_ : %i"), PatrolPoints->Num());
+
+	if ((*PatrolPoints).Num() == 0) //protect against empty patrol routes
+	{
+		UE_LOG(LogTemp, Warning, TEXT("A guard is missing patrol points"));
+		return false;
+	}
+
+	return true;
 }
 
-void UChooseNextWaypoint::SetNextWaypoint(UBlackboardComponent *BlackboardComp, int IndexCurrent, TArray<AActor*> &PatrolPoints)
+void UChooseNextWaypoint::SetNextWaypoint(UBlackboardComponent *BlackboardComp, const int IndexCurrent, const TArray<AActor*> &PatrolPoints)
 {
 	BlackboardComp->SetValueAsObject(this->m_WaypointKey.SelectedKeyName, PatrolPoints[IndexCurrent]);
 }
 
-void UChooseNextWaypoint::CycleIndex(UBlackboardComponent *BlackboardComp, int IndexCurrent, TArray<AActor*> &PatrolPoints)
+void UChooseNextWaypoint::CycleIndex(UBlackboardComponent *BlackboardComp, const int IndexCurrent, const TArray<AActor*> &PatrolPoints)
 {
 	//Increment index to indicate ai to go to next patrol point
 	int NextIndex = (IndexCurrent + 1) % PatrolPoints.Num();
