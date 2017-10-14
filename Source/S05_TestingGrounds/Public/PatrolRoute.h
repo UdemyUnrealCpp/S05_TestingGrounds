@@ -18,7 +18,6 @@ public:
 	TArray<AActor*> GetPatrolPoints() const;
 
 private:
-	//TODO Remove or create Get
-	UPROPERTY(EditInstanceOnly, Category = "Patrol Route")
+	UPROPERTY(EditAnywhere, Category = "Patrol Route")
 	TArray<AActor*> m_PatrolPoints;	
 };
